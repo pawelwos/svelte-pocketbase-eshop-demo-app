@@ -1,13 +1,24 @@
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
-
-<div class="container h-full mx-auto flex justify-center items-center">
-	<div class="space-y-5">
-		<h1>Let's get cracking bones!</h1>
-		<p>Start by exploring:</p>
-		<ul>
-			<li><code>/src/routes/+layout.svelte</code> - barebones layout, the CSS import order is critical!</li>
-			<li><code>/src/app.postcss</code> - minimal css to make the page full screen, may not be relevant for your project</li>
-			<li><code>/src/routes/+page.svelte</code> - this page, you can replace the contents</li>
-		</ul>
-	</div>
+<script lang="ts">
+	import type { PageData } from './$types';
+	import ProductItem from '$lib/components/ProductItem.svelte'
+	export let data: PageData;
+	const {results} = data
+</script>
+<div class="prose py-8">
+	<h2>Latest Products</h2>
+	<hr>
 </div>
+{#if results.items}
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10">
+		{#each results.items as product}
+			<ProductItem product={product} />
+		{/each}
+	</div>
+{:else}
+	 <div class="card p-4">
+		<p>No products yet</p>
+	</div>
+{/if}
+
+
+
