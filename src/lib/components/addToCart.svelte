@@ -1,10 +1,23 @@
-<script>
-  export let product
+<script lang="ts">
+	import { drawerStore } from '@skeletonlabs/skeleton';
+	import type { DrawerSettings } from '@skeletonlabs/skeleton';
+  import { toastStore } from '@skeletonlabs/skeleton';
+  import type { ToastSettings } from '@skeletonlabs/skeleton';
+  const CartDrawer:DrawerSettings = {
+		id: 'Cart',
+		position: 'right'
+	}
 
-  import { cart, showCart } from '$lib/store';
-  const addToCart = (product) => {
+  export let product:object
+
+  import { cart } from '$lib/store';
+  const addToCart = (product:object):void => {
     //console.log('add to cart')
-    showCart.set(true)
+    drawerStore.open(CartDrawer)
+    const addedToCart:ToastSettings = {
+      message: `Product ${product.name} added to the cart`
+    }
+    toastStore.trigger(addedToCart)
     for(let item of $cart) {
         if(item.id === product.id) {
 
@@ -19,5 +32,5 @@
 {#if product.stock > 0}
    <button on:click={addToCart({...product, quantity: 1})} class="btn variant-filled">Add to cart</button>
 {:else}
-  Brak Produktu
+  Out of stock
 {/if}

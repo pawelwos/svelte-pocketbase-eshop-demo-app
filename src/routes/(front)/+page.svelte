@@ -4,8 +4,8 @@
 	export let data: PageData;
 	const {results} = data
 </script>
-<div class="prose py-8">
-	<h2>Latest Products</h2>
+<div class="py-8">
+	<h2 class="mb-4">Latest Products</h2>
 	<hr>
 </div>
 {#if results.items}
