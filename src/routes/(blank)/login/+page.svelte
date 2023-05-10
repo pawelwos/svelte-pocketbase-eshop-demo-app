@@ -17,6 +17,12 @@
 		<div class="w-full my-4">
 			<a href="/reset-password">Forgot password?</a>
 		</div>
-			<button type="submit" class="btn variant-filled-primary w-full">Login</button>  
+			<button type="submit" class="btn variant-filled-primary w-full">Login</button> 
+      <hr>
+      <form method="POST">
+        <button class="variant-ringed">
+          <span>Continue with Google</span>
+        </button>
+      </form>
 	</form>
 </div>
