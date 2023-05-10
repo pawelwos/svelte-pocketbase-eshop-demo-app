@@ -20,7 +20,9 @@
 
 	import MainNav from '$lib/components/MainNav.svelte'
 	import Cart from '$lib/components/Cart.svelte'
-	import type { PageData } from './$types';
+	import type { LayoutData } from './$types';
+  import {categoryLink} from "$lib/utils"
+
 
 	const MainNavDrawer:DrawerSettings = {
 		id: 'MainNav',
@@ -41,8 +43,8 @@
 	}
 
 
-  export let data:PageData
-  const {user} = data
+  export let data:LayoutData
+  const {user, categories} = data
 </script>
 <Toast />
 <Modal />
@@ -50,7 +52,7 @@
 	{#if $drawerStore.id === 'Cart'}
   <Cart />
 	{:else}
-		<MainNav />
+		<MainNav user={user} />
 	{/if}
 </Drawer>
 <AppShell slotSidebarLeft="w-0 md:w-52 bg-black/50">
@@ -68,7 +70,7 @@
 			<svelte:fragment slot="trail">
 				<LightSwitch />
         {#if user}
-				  <Avatar initials="JD" width="w-10" background="bg-primary-500" />
+				  <Avatar initials={user.name?.split(' ')[0]?.slice(0,1)+user.name?.split(' ')[1]?.slice(0,1)} width="w-10" background="bg-primary-500" />
         {:else}
 				<a href="/register" class="hidden lg:flex btn variant-filled-primary">
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -94,9 +96,41 @@
 	<div class="container mx-auto p-4">
 		<slot />
 	</div>
-	<svelte:fragment slot="footer">
-		<div class="container mx-auto text-center p-4">
+	<div class="bg-white mt-16">
+		<div class="container mx-auto grid md:grid-cols-2 lg:grid-cols-4 py-8">
+			<div class="prose">
+				<h3>eShop Demo App</h3>
+				<p>Source code:</p>
+			</div>
+			<div class="prose">
+				<h3>Categories</h3>
+				<ul>
+					{#each categories.items as category}
+						<li><a href={categoryLink(category.name, category.id)}>{category.name}</a></li>
+					{/each}
+				</ul>
+			</div>
+			<div class="prose">
+				<h3>Navigation:</h3>
+				<ul>
+					<li><a href="/" on:click={drawerClose}>Home</a></li>
+					<li><a href="/about" on:click={drawerClose}>About Us</a></li>
+					<li><a href="/categories" on:click={drawerClose}>Shop</a></li>
+					<li><a href="/contact" on:click={drawerClose}>Contact</a></li>
+					<li><a href="/terms-and-conditions" on:click={drawerClose}>Terms & Conditions</a></li>
+				</ul>
+			</div>
+			<div class="prose">
+				<h3>Contact:</h3>
+					<ul>
+						<li><strong>Email:</strong> <a href="mailto:info@example.com">info@example.com</a><br /></li>
+						<li><strong>Telefon:</strong> +44 02081 123 123</li>
+					</ul>
+			</div>
+		</div>
+		<div class="container mx-auto text-center p-4 mt-8">
+			<hr class="mb-3">
 			<p>&copy;{new Date().getFullYear()} eShop Demo App using <a href="https://kit.svelte.dev/" target="_blank">Sveltekit</a>, <a href="https://www.skeleton.dev/" target="_blank">Skeleton UI</a>  and <a href="https://pocketbase.io/" target="_blank">PocketBase</a></p>
 		</div>
-	</svelte:fragment>
+	</div>
 </AppShell>

@@ -5,12 +5,14 @@
 	import '@skeletonlabs/skeleton/styles/all.css';
 	// Most of your app wide CSS should be put in this file
 	import '../../app.postcss';
+	import { AppShell } from '@skeletonlabs/skeleton';
+	import { Toast } from '@skeletonlabs/skeleton';
 
 </script>
-<div class="container mx-auto max-w-3xl py-8">
-  <h1 class="mb-8 text-center"><a href="/">eShop Demo App</a></h1>
-  <slot />
-  <div class="text-center my-8">
-    <a href="/" class="btn variant-filled">Back to homepage</a>
-  </div>
-</div>
+<Toast />
+<AppShell>
+	<div class="container prose dark:prose-invert mx-auto max-w-3xl py-8">
+		<h1 class="text-center"><a href="/" class="no-underline">eShop Demo App</a></h1>
+		<slot />
+	</div>
+</AppShell>

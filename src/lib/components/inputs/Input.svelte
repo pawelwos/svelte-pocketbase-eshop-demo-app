@@ -8,11 +8,11 @@
   export let error
 </script>
 
-<p>
-  <label class="block text-sm font-bold mb-2 label  " for="">{label}
+<div>
+  <label class="block text-sm font-bold label mt-4" for="">{label}
     <input class="input w-full {error && 'input-error'}" type={type} value={value} name={name} placeholder={placeholder} disabled={disabled} />
   </label>
   {#if error}
-    <p class="text-[red]">{error}</p>
+    <p class="variant-filled-error">{error}</p>
   {/if}
-</p>
+</div>

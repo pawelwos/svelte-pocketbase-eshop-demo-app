@@ -1,3 +1,13 @@
+import type { ZodSchema } from 'zod';
+import z from "zod";
+
+const { randomBytes } = await import('node:crypto');
+
+export const generateUsername = (name:string) => {
+	const id = randomBytes(2).toString('hex');
+	return `${name.slice(0, 5)}${id}`;
+};
+
 export const slugify = (str: string):string => {
     str = str.replace(/^\s+|\s+$/g, ''); // trim
     str = str.toLowerCase();
@@ -25,3 +35,22 @@ export const categoryLink = (name: string, id: number):string => {
 }
 
 
+export const validateData = async (formData:FormData, schema:ZodSchema):Promise<object>  => {
+	const body = Object.fromEntries(formData);
+
+	try {
+		const data = schema.parse(body);
+		return {
+			formData: data,
+			errors: null
+		};
+	} catch (err) {
+		//console.log('Error: ', err);
+
+		const errors = err instanceof z.ZodError && err.flatten() ;
+		return {
+			formData: body,
+			errors
+		};
+	}
+};

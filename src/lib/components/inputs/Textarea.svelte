@@ -7,10 +7,11 @@
   export let error
 </script>
 
-<p>
-  <label class="block text-sm font-bold mb-2" for="">{label}</label>
-  <textarea class="w-full {error && 'border-[red]'}" name={name} placeholder={placeholder} disabled={disabled}>{value}</textarea>
+<div>
+  <label class="block text-sm font-bold label mt-4" for="">{label}
+    <textarea class="textarea {error && 'input-error'}" rows="4" name={name} placeholder={placeholder} disabled={disabled}>{value}</textarea>
+  </label>
   {#if error}
-    <p class="text-[red]">{error}</p>
+    <p class="variant-filled-error">{error}</p>
   {/if}
-</p>
+</div>

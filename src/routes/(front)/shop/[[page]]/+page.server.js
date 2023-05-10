@@ -1,4 +1,3 @@
-import { serializeNonPOJOs } from '$lib/utils'
 
 export const load = async ({locals, params}) => {
 
@@ -6,6 +5,6 @@ export const load = async ({locals, params}) => {
 			filter: 'published = true'
 	});
 	return {
-		products: serializeNonPOJOs(result)
+		products: structuredClone(result)
 	}
 }

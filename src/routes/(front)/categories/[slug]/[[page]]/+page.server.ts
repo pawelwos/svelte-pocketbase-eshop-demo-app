@@ -1,6 +1,3 @@
-import { serializeNonPOJOs } from '$lib/utils'
-
-
 export const load = async ({locals, params}) => {
   let id = params.slug.split("-").pop()
   const category = await locals.pb.collection('categories').getOne(id);
@@ -8,8 +5,8 @@ export const load = async ({locals, params}) => {
 			filter: 'published = true && categories ~ "'+id+'"'
 	});
 	return {
-		products: serializeNonPOJOs(result),
+		products: structuredClone(result),
     slug: params.slug,
-    category: serializeNonPOJOs(category)
+    category: structuredClone(category)
 	}
 }

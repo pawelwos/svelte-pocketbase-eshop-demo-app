@@ -3,6 +3,7 @@
 
 	import { drawerStore } from '@skeletonlabs/skeleton';
   import ProductImage from '$lib/components/ProductImage.svelte'
+  import Price from '$lib/components/Price.svelte';
 
   const minusItem = (product) => {
     for(let item of $cart) {
@@ -63,7 +64,7 @@
                             <button class="chip variant-filled-secondary" on:click={() => plusItem(item)}>+</button>
                             <button class="chip variant-filled-primary" on:click={() => minusItem(item)}>-</button>
                         </td>
-                        <td class="{i % 2 === 0 ? 'bg-slate-200' : ''} text-right font-bold text-c3">&pound;{item.price * item.quantity}</td>
+                        <td class="{i % 2 === 0 ? 'bg-slate-200' : ''} text-right font-bold text-c3"><Price price={item.price * item.quantity} /></td>
                     </tr>
                     {/if}
                 {/each}
@@ -76,7 +77,7 @@
                   <td>&nbsp;</td>
                   <td>&nbsp;</td>
                     <td class="py-4 text-xl text-right">
-                        <h4>Total: &pound;{total}</h4>
+                        <h4>Total: <Price price={total} /></h4>
                     </td>
                 </tr>
               </tfoot>
@@ -84,7 +85,7 @@
           </div>
         {#if $cart.length > 0}
         <div class="flex justify-between">
-          <a href="/" class="btn variant-filled" on:click={()=>closeCart()}>Continue</a>
+          <a href="/" class="btn variant-filled" on:click|preventDefault={()=>closeCart()}>Continue</a>
           <a href="/checkout" class="btn variant-filled-primary" on:click={()=>closeCart()}>Checkout</a>
         </div>
         {/if}

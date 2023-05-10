@@ -1,10 +1,10 @@
 <script>
-    import ProductItem from "../../../components/ProductItem.svelte";
+    import ProductItem from "$lib/components/ProductItem.svelte";
     export let data
 </script>
 <section class="products">
     <div class="container mx-auto p-4">
-      <h1 class="text-center text-primary font-bold text-2xl lg:text-4xl mb-6">Sklep</h1>
+      <h1 class="text-center text-primary font-bold text-2xl lg:text-4xl mb-6">Shop</h1>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
         {#each data.products.items as product}
           <ProductItem key={product.id} product={product} />

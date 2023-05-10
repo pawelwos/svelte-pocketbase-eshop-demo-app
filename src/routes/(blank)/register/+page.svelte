@@ -1,17 +1,21 @@
 <script>
   import {enhance} from "$app/forms"
-	import RegisterForm from '$components/forms/Register.svelte'
+	import RegisterForm from '$lib/components/forms/Register.svelte'
+	import Accept from '$lib/components/inputs/Accept.svelte'
   export let form
 </script>
-<div class="container mx-auto p-4 flex flex-col items-center justify-center max-w-2xl">
-	<h2 class="mt-2 text-center text-3xl font-bold tracking-tight text-base-content">
-		Zarejestruj się
-	</h2>
-	<p class="text-center mt-1">
-		Lub <a href="/login">zaloguj się</a> jeśli posiadasz już konto.
-	</p>
+
+<div class="card p-8">
+	<header class="header">
+		<h2 class="mb-4">Register</h2>
+    <hr class="mb-4">
+    <p>
+      or <a href="/login">login</a> if you already have an account.
+    </p>  
+	</header>
 	<form action="?/register" method="POST" class="w-full" use:enhance>
-		<RegisterForm createAccount errors={form?.errors?.fieldErrors} />
-    <button type="submit" class="button w-full">Zarejestruj</button>
+		<RegisterForm user={{}} createAccount errors={form?.errors} />
+		<div class="flex flex-wrap justify-center mt-8"><Accept name="accept" error={form?.errors.accept} /></div>
+    <button type="submit" class="btn variant-filled-primary w-full mt-6">Register</button>
 	</form>
 </div>

@@ -2,6 +2,7 @@
   import AddToCart from "$lib/components/addToCart.svelte"
   import {productLink} from "$lib/utils"
   import ProductImage from '$lib/components/ProductImage.svelte'
+  import Price from '$lib/components/Price.svelte'
   export let product
 </script>
 
@@ -17,7 +18,7 @@
 				</div>
         <div class="flex justify-between items-center">
         <AddToCart product={product} />
-        <h3 class="font-bold text-primary text-lg lg:text-2xl">&pound;{product.price}</h3>
+        <h3 class="font-bold text-primary text-lg lg:text-2xl"><Price price={product.price} /></h3>
         </div>
     </div>
 </div>
