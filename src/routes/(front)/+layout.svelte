@@ -18,6 +18,17 @@
   import { Modal, modalStore } from '@skeletonlabs/skeleton';
   import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
 
+	import { popup } from '@skeletonlabs/skeleton';
+	import type { PopupSettings } from '@skeletonlabs/skeleton';
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+	import { storePopup } from '@skeletonlabs/skeleton';
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+	const popupAvatar: PopupSettings = {
+		event: 'click',
+		target: 'popupAvatar',
+		placement: 'bottom'
+	};
+
 	import MainNav from '$lib/components/MainNav.svelte'
 	import Cart from '$lib/components/Cart.svelte'
 	import type { LayoutData } from './$types';
@@ -36,6 +47,10 @@
 
 	function drawerOpen(): void {
 		drawerStore.open(MainNavDrawer)
+	}
+
+	function drawerClose(): void {
+		drawerStore.close()
 	}
 
 	function cartOpen(): void {
@@ -68,10 +83,30 @@
 			</svelte:fragment>
 			
 			<svelte:fragment slot="trail">
-				<LightSwitch />
+				<div class="mx-2">
+					<LightSwitch />
+				</div>
         {#if user}
-				  <Avatar initials={user.name?.split(' ')[0]?.slice(0,1)+user.name?.split(' ')[1]?.slice(0,1)} width="w-10" background="bg-primary-500" />
-        {:else}
+					<button class="block" use:popup={popupAvatar}>
+						<Avatar initials={user.name?.split(' ')[0]?.slice(0,1)+user.name?.split(' ')[1]?.slice(0,1)} width="w-10" background="bg-primary-500" />
+					</button>
+					<div class="card w-48 shadow-xl py-2" data-popup="popupAvatar">
+						<ul class="list text-center">
+							<li><a href="/account" class="btn mx-auto">Account</a></li>
+							<li>
+								<form action="/logout" class="w-full" method="POST">
+									<button type="submit" class="flex w-auto mx-auto btn variant-filled">
+										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+										</svg>	
+										<span>Logout</span>
+									</button>
+								</form>
+							</li>
+						</ul>
+						<div class="arrow bg-surface-100-800-token" />
+					</div>
+				{:else}
 				<a href="/register" class="hidden lg:flex btn variant-filled-primary">
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -96,13 +131,13 @@
 	<div class="container mx-auto p-4">
 		<slot />
 	</div>
-	<div class="bg-white mt-16">
+	<footer class="bg-white dark:bg-slate-800 mt-16">
 		<div class="container mx-auto grid md:grid-cols-2 lg:grid-cols-4 py-8">
-			<div class="prose">
+			<div class="typography">
 				<h3>eShop Demo App</h3>
 				<p>Source code:</p>
 			</div>
-			<div class="prose">
+			<div class="typography">
 				<h3>Categories</h3>
 				<ul>
 					{#each categories.items as category}
@@ -110,7 +145,7 @@
 					{/each}
 				</ul>
 			</div>
-			<div class="prose">
+			<div class="typography">
 				<h3>Navigation:</h3>
 				<ul>
 					<li><a href="/" on:click={drawerClose}>Home</a></li>
@@ -120,7 +155,7 @@
 					<li><a href="/terms-and-conditions" on:click={drawerClose}>Terms & Conditions</a></li>
 				</ul>
 			</div>
-			<div class="prose">
+			<div class="typography">
 				<h3>Contact:</h3>
 					<ul>
 						<li><strong>Email:</strong> <a href="mailto:info@example.com">info@example.com</a><br /></li>
@@ -132,5 +167,11 @@
 			<hr class="mb-3">
 			<p>&copy;{new Date().getFullYear()} eShop Demo App using <a href="https://kit.svelte.dev/" target="_blank">Sveltekit</a>, <a href="https://www.skeleton.dev/" target="_blank">Skeleton UI</a>  and <a href="https://pocketbase.io/" target="_blank">PocketBase</a></p>
 		</div>
-	</div>
+	</footer>
 </AppShell>
+
+<style lang="postcss">
+	footer a {
+		@apply !no-underline
+	}
+</style>

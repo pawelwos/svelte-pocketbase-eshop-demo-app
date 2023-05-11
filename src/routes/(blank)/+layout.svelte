@@ -11,7 +11,7 @@
 </script>
 <Toast />
 <AppShell>
-	<div class="container prose dark:prose-invert mx-auto max-w-3xl py-8">
+	<div class="container typography mx-auto max-w-3xl py-8">
 		<h1 class="text-center"><a href="/" class="no-underline">eShop Demo App</a></h1>
 		<slot />
 	</div>

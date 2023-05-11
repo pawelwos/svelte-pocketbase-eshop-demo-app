@@ -1,37 +1,36 @@
 <script>
-
-	import H1 from '$components/html/h1.svelte'
+	import Price from '$lib/components/Price.svelte'
   import {enhance} from "$app/forms";
 	export let data
-	const {user, orders, shipping} = data
+	const {orders, shipping} = data
 </script>
-<section class="account p-4 py-16">
+<section class="account typography p-4 py-16">
 	<div class="container mx-auto">
-		<H1>Witaj {user.name}!</H1>
+		<h2>Your Account</h2>
 		{#if orders?.items?.length}
-			<p>Oto Twoje ostatnie zamówienia:</p>
+			<p>Your latest orders:</p>
 
 			<div class="relative overflow-x-auto">
 				<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
 						<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 								<tr>
 										<th scope="col" class="px-6 py-3">
-												Data
+												Date
 										</th>
 										<th scope="col" class="px-6 py-3">
-												Numer zamówienia
+												Order number
 										</th>
 										<th scope="col" class="px-6 py-3">
-												Zamówione Produkty
+												Products
 										</th>
 										<th scope="col" class="px-6 py-3">
-												Adres dostawy
+												Address
 										</th>
 										<th scope="col" class="px-6 py-3">
 												Status
 										</th>
 										<th scope="col" class="px-6 py-3">
-												Do zapłaty
+												price
 										</th>
 								</tr>
 						</thead>
@@ -64,21 +63,21 @@
 										</td>
 										<td class="px-6 py-4">
 												{#if order.status == 'PAID'}
-													 <span class="text-green-800">Opłacony</span>
+													 <span class="text-green-800">Paid</span>
 												{:else if order.status == 'PENDING'}
 													 <form action="?/pay" method="POST" use:enhance>
                             <input type="hidden" name="sessionId" value="{order.sessionId}">
                             <input type="hidden" name="orderId" value="{order.id}">
                             <input type="hidden" name="total" value="{order.total}">
                             <input type="hidden" name="shipping" value="{parseInt(shipping.value)}">
-                            <button class="button">Zapłać</button>
+                            <button class="button">Pay</button>
                           </form>
 												{:else}
-                          <span class="text-red-600">Nieopłacony</span>
+                          <span class="text-red-600">Not paid</span>
 												{/if}
 										</td>
 										<td class="px-6 py-4">
-												{order.total/100}zł
+												<Price price={order.total/100} />
 										</td>
 								</tr>
 							{/each}
@@ -87,7 +86,7 @@
 			</div>
 
 		{:else}
-			<p>Brak zamówień</p>
+			<p>No orders yet</p>
 		{/if}
 	</div>
 </section>

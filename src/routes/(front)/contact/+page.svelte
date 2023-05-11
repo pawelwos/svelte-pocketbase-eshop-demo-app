@@ -1,4 +1,4 @@
-<div class="my-8 prose">
+<div class="my-8 typography">
     <h1>Contact</h1>
     <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Exercitationem incidunt ut odio.</p>
     <p>

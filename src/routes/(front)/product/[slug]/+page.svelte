@@ -8,7 +8,7 @@
 <div class="container mx-auto my-8">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <ProductImage class="w-full h-auto" product={product} />
-    <div class="prose">
+    <div class="typography">
       <h1 class="text-2xl lg:text-4xl text-primary font-bold mb-2">{product.name}</h1>
       <h3 class="text-c3 mb-4">
           {#each product.expand.tags as tag, i}

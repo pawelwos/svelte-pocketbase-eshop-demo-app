@@ -1,4 +1,4 @@
-<div class="my-8 prose">
+<div class="my-8 typography">
     <h1>About Us</h1>
     <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Exercitationem incidunt ut odio omnis sunt laboriosam rerum quod reiciendis temporibus quis, maiores debitis obcaecati nam libero. Minus expedita praesentium voluptas nulla mollitia impedit. Voluptate nesciunt, nam saepe id qui eius vel culpa porro expedita asperiores officia dolor doloremque veritatis corporis esse sapiente enim sit sunt nihil? Unde a minus sapiente fuga architecto aut, dolorem commodi blanditiis, voluptas ipsum quis ducimus illum debitis rem modi dolor temporibus! Veritatis, dolorum dignissimos. Obcaecati inventore itaque nulla ratione. Odit, vitae! Molestias aliquam sequi adipisci recusandae suscipit quibusdam sed deleniti, nesciunt consequatur eaque sunt repellendus optio.</p>
 </div>

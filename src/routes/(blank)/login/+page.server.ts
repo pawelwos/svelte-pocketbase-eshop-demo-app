@@ -1,6 +1,10 @@
 import { error, fail, redirect } from '@sveltejs/kit'
+import type { Actions } from './$types';
+import eventsource from 'eventsource';
+global.EventSource = eventsource
+
 import { z } from "zod";
-export const actions = {
+export const actions:Actions = {
 	login: async ({request, locals}) => {
 		const body = Object.fromEntries(await request.formData() )
     const loginSchema = z.object({
@@ -28,5 +32,24 @@ export const actions = {
 			}
 		}
 		throw redirect(303, '/')
+	},
+	google: async({request, locals}) => {
+		try {
+			const authData = await locals.pb?.collection('users').authWithOAuth2({ provider: 'google' });
+		} catch (err) {
+			console.log("Google login error: ", err)
+			throw error(500, '500 error page')
+		}
+		throw redirect(303, '/')
+	},
+	facebook: async({request, locals}) => {
+		try {
+			const authData = await locals.pb?.collection('users').authWithOAuth2({ provider: 'facebook' });
+		} catch (err) {
+			console.log("Facebook login error: ", err)
+			throw error(500, '500 error page')
+		}
+		throw redirect(303, '/')
 	}
-}
+} satisfies Actions;
+
