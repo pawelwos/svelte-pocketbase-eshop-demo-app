@@ -13,7 +13,7 @@ export const actions:Actions = {
     
 
     const body = Object.fromEntries(await request.formData() )
-
+    const user = locals.pb.authStore.model ?? null
 
     if(body.create_account) {
 			const { formData, errors } = await validateData(await request.formData(), registerUserSchema)
@@ -58,13 +58,6 @@ export const actions:Actions = {
 			const shipping = parseInt(structuredClone(result).value);
 			total = (total + shipping) * 100
 
-			const paymentIntent = await stripe.paymentIntents.create({
-				amount: total,
-				currency: "gbp",
-				automatic_payment_methods: {
-					enabled: true,
-				},
-			});
 
 			if(body.create_account ) {
 				let username = generateUsername(body.name.split(' ').join('').toLowerCase())
@@ -77,15 +70,15 @@ export const actions:Actions = {
 				}
 			} 
 
-			if(locals.user) {
+			if(user) {
 				client = {
-					client: locals.user.name,
-					email: locals.user.email,
-					phone: locals.user.telephone,
-					address: JSON.stringify(locals.user.address),
-					city: locals.user.city,
-					zip: locals.user.postcode,
-					country: 'PL',
+					client: user.name,
+					email: user.email,
+					phone: user.telephone,
+					address: JSON.stringify(user.address),
+					city: user.city,
+					zip: user.postcode,
+					country: user.country,
 				}
 			} else {
 				client = {
@@ -95,7 +88,7 @@ export const actions:Actions = {
 					address: JSON.stringify(body.address),
 					city: body.city,
 					zip: body.postcode,
-					country: 'PL',
+					country: body.country,
 				}
 			}
 
@@ -105,7 +98,7 @@ export const actions:Actions = {
 				// create order record
 				const pb_order = {
 					"sessionId": sessionId,
-					"user": locals.user ? locals.user.id : "",
+					"user": user ? user.id : "",
 					"email": client.email,
 					"telephone": client.phone,
 					"address": client.address,
@@ -120,15 +113,11 @@ export const actions:Actions = {
 					"note": body.note
 				};
 
-				// if different shipping address add it
-				if(body.shipping)
-				pb_order.shipping = body.shipping
-
 				const order_record = await locals.pb.collection('orders').create(pb_order)
 
 				// create payment record
 				const pb_payment = {
-					"user": locals.user ? locals.user.id : "",
+					"user": user ? user.id : "",
 					"order": order_record.id,
 					"session_id": sessionId,
 					"amount": total,
@@ -167,7 +156,7 @@ export const actions:Actions = {
 			throw error(500, '500 error page')
 		}
 
-		throw redirect(303, transaction.getRedirect())
+		throw redirect(303, "/")
 	}
 } satisfies Actions;
 

@@ -3,7 +3,7 @@
     import {enhance} from "$app/forms"
     import ProductImage from '$lib/components/ProductImage.svelte'
     import Price from '$lib/components/Price.svelte'
-	import RegisterForm from '$lib/components/forms/Register.svelte'
+	  import RegisterForm from '$lib/components/forms/Register.svelte'
     import { loadStripe } from '@stripe/stripe-js'
     import { onMount } from 'svelte'
 
@@ -11,7 +11,6 @@
     import { Elements, PaymentElement, LinkAuthenticationElement, Address } from 'svelte-stripe'
     export let data
     export let form
-    let altAddress = false
 
     let elements
     let stripe = null

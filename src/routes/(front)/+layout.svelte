@@ -131,7 +131,7 @@
 	<div class="container mx-auto p-4">
 		<slot />
 	</div>
-	<footer class="bg-white dark:bg-slate-800 mt-16">
+	<footer class="bg-white dark:bg-slate-800 mt-16 p-4">
 		<div class="container mx-auto grid md:grid-cols-2 lg:grid-cols-4 py-8">
 			<div class="typography">
 				<h3>eShop Demo App</h3>
