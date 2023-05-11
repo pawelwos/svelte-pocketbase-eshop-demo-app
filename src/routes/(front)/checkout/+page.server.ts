@@ -1,68 +1,70 @@
 import { error, fail, redirect } from '@sveltejs/kit'
-import { serializeNonPOJOs, generateUsername, getUUID } from '$lib/utils'
-import p24 from '$lib/p24'
-import { z } from "zod";
+import { generateUsername, getUUID, validateData } from '$lib/utils'
+import { SECRET_STRIPE_KEY } from '$env/static/private'
+import type { Actions } from './$types'
+import type { PageServerLoad } from './$types'
+import { toastStore } from '@skeletonlabs/skeleton'
+import type { ToastSettings } from '@skeletonlabs/skeleton'
+import { registerUserSchema } from '$lib/schemas'
+import Stripe from 'stripe';
 
-const stringMessages = {
-  'required_error': 'Pole wymagane',
-  'invalid_type_error': 'Wymagany ciąg znaków',
-  'message': 'Pole wymagane'
-}
-
-
-export const actions = {
+export const actions:Actions = {
 	pay: async ({request, locals, cookies}) => {
     
+
     const body = Object.fromEntries(await request.formData() )
-    const registrSchema = z.object({
-      name: z.string(stringMessages).min(1, stringMessages).trim(),
-      email: z.string(stringMessages).email(stringMessages),
-      telephone: z.string(stringMessages).min(1, stringMessages).trim(),
-      address: z.string(stringMessages).min(1,stringMessages).trim(),
-      postcode: z.string(stringMessages).min(5, {message: 'Kod pocztowy xx-xxx'}).trim(),
-      city: z.string(stringMessages).min(1, stringMessages).trim(),
-      country: z.string(stringMessages).min(1, stringMessages).trim(),
-    });
+
 
     if(body.create_account) {
-      registrSchema = {
-        ...registrSchema,
-        password: z.string(stringMessages).min(8, {message: 'Hasło musi mieć conajmniej 8 znaków'}).trim(),
-        passwordConfirm: z.string(stringMessages).min(8, {message: 'Hasło musi mieć min 8 znaków'}).trim(),
-      }
+			const { formData, errors } = await validateData(await request.formData(), registerUserSchema)
+
+			if (errors) {
+				const t: ToastSettings = {
+					message: 'Validation errors',
+					background: 'variant-filled-error'
+				};
+				toastStore.trigger(t);
+				return fail(400, {
+					data: formData,
+					errors: errors.fieldErrors
+				})
+			}
     }
 
-    try {
-      registrSchema.parse(body)
-    } catch (err) {
-      return fail(400, { errors: err.flatten() });
-    }
 
 		let client = {}
 		let total = 0
 		const sessionId = cookies.get('sessionId')
     let products = []
 
-		// start p24
-		const transaction = new p24()
 
 		const cart = JSON.parse(cookies.get('cart'))
 
 		for (const v of cart) {
 			const product = await locals.pb.collection('products').getOne(v.id);
 			if(product) {
-				const obj = serializeNonPOJOs(product)
+				const obj = structuredClone(product)
         products.push(obj)
 				total =  total+obj.price
 			}
 		}
 		
+
+		
 		if(total > 0)
 		try {
 
-			const result = await locals.pb.collection('options').getOne('wvo06cc5cbpk6zk');
-			const shipping = parseInt(serializeNonPOJOs(result).value);
+			const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
+			const shipping = parseInt(structuredClone(result).value);
 			total = (total + shipping) * 100
+
+			const paymentIntent = await stripe.paymentIntents.create({
+				amount: total,
+				currency: "gbp",
+				automatic_payment_methods: {
+					enabled: true,
+				},
+			});
 
 			if(body.create_account ) {
 				let username = generateUsername(body.name.split(' ').join('').toLowerCase())
@@ -97,11 +99,6 @@ export const actions = {
 				}
 			}
 
-			// set p24 transaction
-			transaction.setClient(client)
-			transaction.setSessionId(sessionId)
-			transaction.setShipping(shipping)
-			transaction.setTotal(total)
 
 			try {
 
@@ -157,10 +154,7 @@ export const actions = {
 					}
 				}
 				// continue p24 transaction
-				transaction.setDescription(`Zamówienie: ${order_record.id}`)
-				transaction.setSignature()
-				transaction.setOrder()
-				await transaction.obtainToken()
+
 
 			} catch (err) {
 				console.log('Error: ', err)
@@ -175,18 +169,45 @@ export const actions = {
 
 		throw redirect(303, transaction.getRedirect())
 	}
-}
+} satisfies Actions;
 
-export const load = async ({locals, cookies }) => {
-	const result = await locals.pb.collection('options').getOne('wvo06cc5cbpk6zk');
-	const shipping = serializeNonPOJOs(result);
+export const load = (async ({locals, cookies }) => {
+	const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
+	const shipping:number = structuredClone(result).value;
   const sessionId = getUUID()
+
+
+	const cart = JSON.parse(cookies.get('cart'))	
+	let total = 0
+
+	for (const v of cart) {
+		const product = await locals.pb.collection('products').getOne(v.id);
+		if(product) {
+			const obj = structuredClone(product)
+			total =  total+obj.price
+		}
+	}
+	total = (total + shipping) * 100
+
+	const stripe = new Stripe(SECRET_STRIPE_KEY);
+
+	const paymentIntent = await stripe.paymentIntents.create({
+		amount: total,
+		currency: "gbp",
+		automatic_payment_methods: {
+			enabled: true,
+		},
+	});
+	const clientSecret = paymentIntent.client_secret
+
+
   cookies.set('sessionId', sessionId, {
 		httpOnly: false,
 		secure: false
 	})
 	return {
 		shipping,
-		user: locals.user ? locals.user : undefined
+		clientSecret,
+		user: structuredClone(locals.pb?.authStore?.model) ?? undefined
 	}
-}
+}) satisfies PageServerLoad;

@@ -3,6 +3,13 @@ import z from "zod";
 
 const { randomBytes } = await import('node:crypto');
 
+export const getUUID = ():string => {
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+			var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+			return v.toString(16);
+	});
+}
+
 export const generateUsername = (name:string) => {
 	const id = randomBytes(2).toString('hex');
 	return `${name.slice(0, 5)}${id}`;
