@@ -11,7 +11,7 @@ import { generateUsername, validateData } from '$lib/utils'
 /** @type {import('./$types').Actions} */
 export const actions = {
 	register: async ({locals, request}) => {
-		const { formData, errors } = await validateData(await request.formData(), registerUserSchema)
+		const { formData, errors } = await validateData(await request.formData(), registerUserSchema(false))
 
 		if (errors) {
       const t: ToastSettings = {

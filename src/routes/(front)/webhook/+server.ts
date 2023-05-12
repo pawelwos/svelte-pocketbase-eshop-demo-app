@@ -8,8 +8,14 @@ const endpointSecret = "whsec_498a46cb120d90a53c679d073c6005559d4575b742d61233a6
 const stripe = new Stripe(SECRET_STRIPE_KEY);
 
 export const POST = (async ({ locals, request }) => {
+
+
   const event = await request.json()
-  console.log(event.type)
+
+  //const payment = await locals.pb.collection('payments').getFirstListItem( `session_id = "${sessionId}"`, {})
+
+
+  console.log(event)
   // Handle the event
   switch (event.type) {
     case 'payment_intent.succeeded':

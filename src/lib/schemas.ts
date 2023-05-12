@@ -7,7 +7,8 @@ export const loginUserSchema = z.object({
 	password: z.string({ required_error: 'Password is required' })
 });
 
-export const registerUserSchema = z
+export const registerUserSchema = (checkout = false) => {
+	const schema = z
 	.object({
 		name: z
 			.string({ required_error: 'Name is required' })
@@ -18,13 +19,13 @@ export const registerUserSchema = z
 		email: z
 			.string({ required_error: 'Email is required' })
 			.email({ message: 'Email must be a valid email' }),
-		password: z
+		password: checkout ? z.any().optional() : z
 			.string({ required_error: 'Password is required' })
 			.regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/, {
 				message:
 					'Password must be a minimum of 8 characters & contain at least one letter, one number, and one special character.'
 			}),
-		passwordConfirm: z
+		passwordConfirm: checkout ? z.any().optional() : z
 			.string({ required_error: 'Confirm Password is required' })
 			.regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/, {
 				message:
@@ -56,7 +57,8 @@ export const registerUserSchema = z
 				})
 				.includes("on", { message: "You need to accept our <a href='/terms-and-conditions' class='text-inherit'>Terms & Conditions</a>" })
 	})
-	.superRefine(({ passwordConfirm, password }, ctx) => {
+	if(!checkout)
+	schema.superRefine(({ passwordConfirm, password }, ctx) => {
 		if (passwordConfirm !== password) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
@@ -69,8 +71,9 @@ export const registerUserSchema = z
 				path: ['passwordConfirm']
 			});
 		}
-	});
-
+	})
+	return schema
+} 
 
 export const updatePasswordSchema = z
 	.object({

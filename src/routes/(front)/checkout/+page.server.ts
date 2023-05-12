@@ -1,6 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit'
-import { generateUsername, getUUID, validateData } from '$lib/utils'
+import { generateUsername, validateData } from '$lib/utils'
 import { SECRET_STRIPE_KEY } from '$env/static/private'
+import { PUBLIC_SUCCESS_URL, PUBLIC_CANCEL_URL, PUBLIC_PB_URL} from '$env/static/public'
 import type { Actions } from './$types'
 import type { PageServerLoad } from './$types'
 import { toastStore } from '@skeletonlabs/skeleton'
@@ -8,58 +9,68 @@ import type { ToastSettings } from '@skeletonlabs/skeleton'
 import { registerUserSchema } from '$lib/schemas'
 import Stripe from 'stripe';
 
+
 export const actions:Actions = {
 	pay: async ({request, locals, cookies}) => {
-    
 
-    const body = Object.fromEntries(await request.formData() )
-    const user = locals.pb.authStore.model ?? null
+		const formData = await request.formData()
+		const user = locals.pb.authStore.model ?? null
+		const { formData: body, errors } = await validateData(formData, registerUserSchema(formData.get('create_account') ? false : true))
+		
 
-    if(body.create_account) {
-			const { formData, errors } = await validateData(await request.formData(), registerUserSchema)
-
-			if (errors) {
-				const t: ToastSettings = {
-					message: 'Validation errors',
-					background: 'variant-filled-error'
-				};
-				toastStore.trigger(t);
-				return fail(400, {
-					data: formData,
-					errors: errors.fieldErrors
-				})
-			}
-    }
-
+		if (errors) {
+			const t: ToastSettings = {
+				message: 'Validation errors',
+				background: 'variant-filled-error'
+			};
+			toastStore.trigger(t);
+			return fail(400, {
+				data: body,
+				errors: errors.fieldErrors
+			})
+		}
 
 		let client = {}
 		let total = 0
-		const sessionId = cookies.get('sessionId')
-    let products = []
-
+		let session:any
 
 		const cart = JSON.parse(cookies.get('cart'))
+		let cartStr:string = ""
 
-		for (const v of cart) {
-			const product = await locals.pb.collection('products').getOne(v.id);
+		// stripe session cart
+		const line_items = []
+
+		for (const item of cart) {
+			const product = await locals.pb.collection('products').getOne(item.id)
 			if(product) {
-				const obj = structuredClone(product)
-        products.push(obj)
-				total =  total+obj.price
+
+				//PUBLIC_PB_URL+"/api/files/"+product.collectionId+"/"+product.id+"/"+product.cover
+				const images = ['https://app.pawelwos.com'+"/api/files/"+product.collectionId+"/"+product.id+"/"+product.cover]
+				
+				// Stripe product create for session
+				line_items.push({
+					price_data: {
+						'currency': 'GBP',
+						'product_data': {
+							'name': product.name,
+							'images': images
+						},
+						'unit_amount': product.price*100
+					},
+					quantity: item.quantity
+				})
+
+				// cart string for PB order 
+				total += (product.price*item.quantity)
+				cartStr += `${product.name} | ${product.price} | ${item.quantity} | ${product.price*item.quantity} \n`
+
 			}
 		}
-		
 
-		
 		if(total > 0)
 		try {
 
-			const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
-			const shipping = parseInt(structuredClone(result).value);
-			total = (total + shipping) * 100
-
-
-			if(body.create_account ) {
+			if(formData.get('create_account') ) {
 				let username = generateUsername(body.name.split(' ').join('').toLowerCase())
 				try {
 					await locals.pb.collection('users').create({username, ...body})
@@ -72,7 +83,7 @@ export const actions:Actions = {
 
 			if(user) {
 				client = {
-					client: user.name,
+					name: user.name,
 					email: user.email,
 					phone: user.telephone,
 					address: JSON.stringify(user.address),
@@ -82,7 +93,7 @@ export const actions:Actions = {
 				}
 			} else {
 				client = {
-					client: body.name,
+					name: body.name,
 					email: body.email,
 					phone: body.telephone,
 					address: JSON.stringify(body.address),
@@ -92,12 +103,52 @@ export const actions:Actions = {
 				}
 			}
 
+			try {
+				// add shipping price
+				const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
+				const shipping = parseInt(structuredClone(result).value);
+				total += shipping
+
+				// init Stripe SDK
+				const stripe = new Stripe(SECRET_STRIPE_KEY);
+
+				session = await stripe.checkout.sessions.create({
+					line_items: line_items,
+					mode: 'payment',
+					currency: 'GBP',
+					customer_email: client.email,
+					success_url: PUBLIC_SUCCESS_URL,
+					cancel_url: PUBLIC_CANCEL_URL,
+					shipping_options: [
+						{
+							shipping_rate_data: {
+								display_name: 'Standard Shipping',
+								type: 'fixed_amount',
+								fixed_amount: {
+									amount: shipping * 100,
+									currency: 'gbp',
+								},
+							}
+						}
+					],
+					locale: 'en-GB'
+				})
+
+				cookies.set('sessionId', session.id, {
+					httpOnly: false,
+					secure: false
+				})
+
+			} catch (err) {
+				console.log('Stripe Session error: ', err)
+				throw error(500, "500 server error")
+			}
 
 			try {
 
 				// create order record
 				const pb_order = {
-					"sessionId": sessionId,
+					"sessionId": session.id,
 					"user": user ? user.id : "",
 					"email": client.email,
 					"telephone": client.phone,
@@ -106,12 +157,14 @@ export const actions:Actions = {
 					"postcode": client.zip,
 					"country": client.country,
 					"status": "PENDING",
-					"products": products.map(p => {
-						return p.id
-					}),
+					"cart": cartStr,
 					"total": total,
 					"note": body.note
 				};
+
+				// if different shipping address add it
+				if(body.shipping)
+				pb_order.shipping = body.shipping
 
 				const order_record = await locals.pb.collection('orders').create(pb_order)
 
@@ -119,7 +172,7 @@ export const actions:Actions = {
 				const pb_payment = {
 					"user": user ? user.id : "",
 					"order": order_record.id,
-					"session_id": sessionId,
+					"session_id": session.id,
 					"amount": total,
 					"status": "PENDING"
 				};
@@ -131,10 +184,10 @@ export const actions:Actions = {
 				})
 
 				// update stock level
-				for (const prod of products) {
+				for (const prod of cart) {
 					try {
 						const data = {
-							'stock': prod.stock - 1
+							'stock': prod.stock - prod.quantity
 						}
 						const update = await locals.pb.collection('products').update(prod.id, data);
 					} catch (err) {
@@ -142,11 +195,9 @@ export const actions:Actions = {
 						throw error(500, '500 error page')
 					}
 				}
-				// continue p24 transaction
-
 
 			} catch (err) {
-				console.log('Error: ', err)
+				console.log('Pocketbase order and payment setup failed: ', err)
 				throw error(500, "500 server error")
 			}
 			
@@ -156,47 +207,16 @@ export const actions:Actions = {
 			throw error(500, '500 error page')
 		}
 
-		throw redirect(303, "/")
+		throw redirect(303, session.url)
 	}
-} satisfies Actions;
+}
 
 export const load = (async ({locals, cookies }) => {
 	const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
-	const shipping:number = structuredClone(result).value;
-  const sessionId = getUUID()
+	const shipping = structuredClone(result).value;
 
-
-	const cart = JSON.parse(cookies.get('cart'))	
-	let total = 0
-
-	for (const v of cart) {
-		const product = await locals.pb.collection('products').getOne(v.id);
-		if(product) {
-			const obj = structuredClone(product)
-			total =  total+obj.price
-		}
-	}
-	total = (total + shipping) * 100
-
-	const stripe = new Stripe(SECRET_STRIPE_KEY);
-
-	const paymentIntent = await stripe.paymentIntents.create({
-		amount: total,
-		currency: "gbp",
-		automatic_payment_methods: {
-			enabled: true,
-		},
-	});
-	const clientSecret = paymentIntent.client_secret
-
-
-  cookies.set('sessionId', sessionId, {
-		httpOnly: false,
-		secure: false
-	})
 	return {
 		shipping,
-		clientSecret,
 		user: structuredClone(locals.pb?.authStore?.model) ?? undefined
 	}
-}) satisfies PageServerLoad;
+}) satisfies PageServerLoad

@@ -1,5 +1,5 @@
 <script>
-  import { cart } from '../store';
+  import { cart } from '$lib/store';
 
 	import { drawerStore } from '@skeletonlabs/skeleton';
   import ProductImage from '$lib/components/ProductImage.svelte'
@@ -32,8 +32,8 @@
   const closeCart = () => {
 		drawerStore.close()
   }
-
-  $: total = $cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  
+  $: total = Object.keys($cart).length ? $cart.reduce((sum, item) => sum + item.price * item.quantity, 0) : 0
 
 </script>
     <button on:click={()=>closeCart()} class="btn btn-circle btn-outline absolute top-4 right-4">

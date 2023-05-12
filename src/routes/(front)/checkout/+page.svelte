@@ -1,27 +1,18 @@
 <script lang="ts">
     import { cart } from '$lib/store'
     import {enhance} from "$app/forms"
+    import type { PageData, ActionData } from './$types';
     import ProductImage from '$lib/components/ProductImage.svelte'
     import Price from '$lib/components/Price.svelte'
-	  import RegisterForm from '$lib/components/forms/Register.svelte'
-    import { loadStripe } from '@stripe/stripe-js'
-    import { onMount } from 'svelte'
-
-    import { PUBLIC_STRIPE_KEY } from '$env/static/public'
-    import { Elements, PaymentElement, LinkAuthenticationElement, Address } from 'svelte-stripe'
-    export let data
-    export let form
-
-    let elements
-    let stripe = null
-
-    onMount(async () => {
-        stripe = await loadStripe(PUBLIC_STRIPE_KEY)
-    })
+	import RegisterForm from '$lib/components/forms/Register.svelte'
+	import Accept from '$lib/components/inputs/Accept.svelte'
+    export let data:PageData
+    export let form:ActionData
 
     let createAccount = false
-    const { shipping, clientSecret } = data
-    $: total = parseInt(shipping.value) + $cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    let altAddress = false
+    const { shipping } = data
+    $: total = parseInt(shipping) + $cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 </script>
 <section class="checkout typography !max-w-none p-4">
     <form action="?/pay" method="POST" use:enhance>
@@ -48,7 +39,7 @@
                 <div class="grid grid-cols-3 md:grid-cols-3 mb-4 items-center py-4 border-t border-gray-500">
 
                     <div class="col-span-2">Shipping cost:</div>
-                    <h4 class="text-2xl text-right"><Price price={parseInt(shipping.value)} /></h4>
+                    <h4 class="text-2xl text-right"><Price price={parseInt(shipping)} /></h4>
                     <div class="col-span-2">Total:</div>
                     <h4 class="text-2xl text-right"><Price price={total} /></h4>
                 </div>
@@ -60,71 +51,43 @@
                 {/if}
             </div>
 
-            <div class="md:order-1">
+            <div class="md:order-1 prose">
                 <h2 class="mb-4 font-bold text-primary text-2xl lg:text-3xl">Checkout</h2>
                 {#if $cart.length > 0}
                     {#if data.user}
-                    {#if stripe && clientSecret}
-                        <Elements
-                        {stripe}
-                        {clientSecret}
-                        theme="flat"
-                        labels="floating"
-                        variables={{ colorPrimary: '#7c4dff' }}
-                        rules={{ '.Input': { border: 'solid 1px #0002' } }}
-                        bind:elements
-                        >
-                        <LinkAuthenticationElement defaultValues={{email: data.user.email}} />
-                        <PaymentElement />
-                        <Address mode="billing" defaultValues={{
-                            name: data.user.name,
-                            address: {
-                                line1: data.user.address,
-                                city: data.user.city,
-                                postal_code: data.user.postcode,
-                                country: data.user.country ?? 'UK'
-                            }
-                        }} />
-                        </Elements>
-                    {:else}
-                        Loading...
+                    <h2 class="mb-4 font-bold text-primary text-2xl lg:text-3xl">Shipping address:</h2>
+                    <p>
+                        {data.user.name}<br />
+                        {@html data.user.address}<br />
+                        {data.user.postcode} {data.user.city}<br />
+                        email: {data.user.email}<br />
+                        teelphone: {data.user.telephone}
+                    </p>
+                    <p><a href="/account/profile">Ship to different address?</a></p>
+                    <p><label for="altAddress"><input id="altAddress" type="checkbox" bind:checked={altAddress}> Different shipping address?</label></p>
+                    {#if altAddress}
+                         <textarea class="textarea textarea-bordered w-full" name="shipping" id="" cols="30" rows="10" placeholder="Dane do wysyłki"></textarea>
                     {/if}
-                    <button type="submit" class="btn my-6 variant-filled-primary w-full">Place order</button>
+                    <button type="submit" class="btn variant-filled-primary w-full">Place your order</button>
                     {:else}
                     <p class="flex items-center">
-                        <a href="/login">Login</a> <span class="px-2">if you already have an account.</span>
+                        <a href="/login" class="pr-2">Login</a> if you have an account.
                     </p>
-                    <p>... or buy as a guest.</p>
+                    <h2 class="mb-4 font-bold text-primary text-2xl lg:text-3xl">Shipping address:</h2>
                     <div class="">
+                        <RegisterForm user={{}} createAccount={createAccount} errors={form?.errors}/>
+		                <div class="flex flex-wrap justify-center mt-8"><Accept name="accept" error={form?.errors?.accept} /></div>
                         <div class="w-full pt-2">
-                            {#if stripe && clientSecret}
-                                <Elements
-                                {stripe}
-                                {clientSecret}
-                                theme="flat"
-                                labels="floating"
-                                variables={{ colorPrimary: '#7c4dff' }}
-                                rules={{ '.Input': { border: 'solid 1px #0002' } }}
-                                bind:elements
-                                >
-                                <LinkAuthenticationElement />
-                                <PaymentElement />
-                                <Address mode="billing" />
-                                </Elements>
-                                <label class="flex items-center my-4" for="account"><input name="create_account" value="true" id="account" type="checkbox" bind:checked={createAccount}><span class="px-2">Create an account?</span></label>
-
-                            {:else}
-                                Loading...
-                            {/if}
-
-                            <button type="submit" class="btn my-6 variant-filled-primary w-full">Place order</button>
+                            <label class="flex items-center mb-4" for="account"><input name="create_account" value="true" id="account" type="checkbox" bind:checked={createAccount}><span class="px-2">Create an account?</span></label>
+                            <button type="submit" class="btn variant-filled-primary w-full">Pay</button>
                         </div>
                     </div>
                     {/if}
                 {:else}
-                    No products yet
+                    Nothing to checkout yet
                 {/if}
             </div>
+            
         </div>
     </div>
     </form>

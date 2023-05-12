@@ -4,6 +4,6 @@ export const load = async ({locals, cookies }) => {
 	return {
 		sessionId,
 		orderId,
-		user: locals.user ? locals.user : undefined
+		user: locals.pb.authStore.model ?? undefined
 	}
 }

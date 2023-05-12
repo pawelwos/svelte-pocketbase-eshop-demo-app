@@ -30,7 +30,7 @@
 												Status
 										</th>
 										<th scope="col" class="px-6 py-3">
-												price
+												Total
 										</th>
 								</tr>
 						</thead>
@@ -45,12 +45,8 @@
 											{order.id}
 										</td>
 										<td class="px-6 py-4">
-											{#if order?.expand?.products}
-												 <ul>
-													 {#each order?.expand?.products as product}
-														 <li class="flex justify-between"><span>{product.name}</span> <span>{product.price}zł</span></li>
-													 {/each}
-												 </ul>
+											{#if order?.cart}
+												 {order.cart}
 											{/if}
 										</td>
 										<td class="px-6 py-4">
