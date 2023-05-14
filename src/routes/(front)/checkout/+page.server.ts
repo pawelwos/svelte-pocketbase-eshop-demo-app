@@ -114,11 +114,45 @@ export const actions:Actions = {
 				// init Stripe SDK
 				const stripe = new Stripe(SECRET_STRIPE_KEY);
 
+        // customer data 
+        const customerData = {
+          address: {
+            city: client.city,
+            line1: client.address,
+            postal_code: client.zip,
+            country: client.country
+          },
+					shipping: {
+						address: {
+							city: client.city,
+							line1: client.address,
+							postal_code: client.zip,
+							country: client.country
+						},
+						name: client.name
+					},
+					name: client.name,
+					email: client.email,
+					phone: client.phone
+				}
+
+				const customers = await stripe.customers.list({
+  					email: client.email,
+				});
+
+				if(customers)
+				{
+          
+          const customer = await stripe.customers.update(customers.data[0].id,customerData);
+				} else {
+          const customer = await stripe.customers.create(customerData);
+        }
+
 				session = await stripe.checkout.sessions.create({
 					line_items: line_items,
 					mode: 'payment',
 					currency: 'GBP',
-					customer_email: client.email,
+					customer: customers.data[0].id ?? null,
 					success_url: PUBLIC_SUCCESS_URL,
 					cancel_url: PUBLIC_CANCEL_URL,
 					shipping_options: [
