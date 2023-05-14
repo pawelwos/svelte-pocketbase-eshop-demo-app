@@ -29,18 +29,17 @@ export const POST = (async ({ locals, request }) => {
     const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
       event.data.object.id,
       {
-        expand: ['line_items'],
+        expand: ['line_items', 'line_items.data.price.product'],
       }
     );
     const lineItems = sessionWithLineItems.line_items;
-    const sessionId = sessionWithLineItems.metadata.sessionId
+    const sessionId = sessionWithLineItems?.metadata?.sessionId
 
     // Fulfill the purchase...
-    console.log(lineItems.data)
     // update stock level
     for (const prod of lineItems.data) {
-      console.log(prod.price)
-      const record = await locals.pb.collection('products').getOne(prod.metadata.productId);
+      //console.log(prod)
+      const record = await locals.pb.collection('products').getOne(prod.price?.product?.metadata.productId);
       try {
         const data = {
           'stock': record.stock - 1
@@ -51,8 +50,10 @@ export const POST = (async ({ locals, request }) => {
         throw error(500, '500 error page')
       }
     }
+    // update payment and order
+    const order = await locals.pb.collection('orders').getFirstListItem( `sessionId = "${sessionId}"`)
+    const payment = await locals.pb.collection('payments').getFirstListItem( `session_id = "${sessionId}"`)
     try {
-      const payment = await locals.pb.collection('payments').getFirstListItem( `session_id = "${sessionId}"`)
 
       const data = {
           "session_id": sessionId,
@@ -65,10 +66,10 @@ export const POST = (async ({ locals, request }) => {
           "sessionId": sessionId,
           "status": 'PAID'
       };
-      const orderRecord = await locals.pb.collection('orders').update(payment.order.id, orderData);
+      const orderRecord = await locals.pb.collection('orders').update(order.id, orderData);
 
-    } catch (error) {
-      console.log(`Payment update: ${record.id} error: `, err)
+    } catch (err) {
+      console.log(`Payment update: ${payment.id} error: `, err)
       throw error(500, '500 error page')
     }
     // update payment and order

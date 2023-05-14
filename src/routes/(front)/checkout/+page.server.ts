@@ -51,18 +51,18 @@ export const actions:Actions = {
 				
 				// Stripe product for session
 				line_items.push({
-					price_data: {
+					'price_data': {
 						'currency': 'GBP',
 						'product_data': {
 							'name': product.name,
-							'images': images
+							'images': images,
+              metadata: {
+                productId: product.id
+              }
 						},
 						'unit_amount': product.price*100,
-            'metadata': {
-              'productId': product.id
-            }
 					},
-					quantity: item.quantity
+					'quantity': item.quantity,
 				})
 
 				// cart string for PB order 
@@ -182,7 +182,7 @@ export const actions:Actions = {
 					locale: 'en-GB'
 				})
 
-				console.log(session)
+				//console.log("Session:", session)
 
 			} catch (err) {
 				console.log('Stripe Session error: ', err)
@@ -195,6 +195,7 @@ export const actions:Actions = {
 				const pb_order = {
 					"sessionId": sessionId,
 					"user": user ? user.id : "",
+					"name": client.name,
 					"email": client.email,
 					"telephone": client.phone,
 					"address": client.address,

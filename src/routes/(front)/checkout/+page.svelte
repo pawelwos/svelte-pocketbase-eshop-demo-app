@@ -4,18 +4,25 @@
     import type { PageData, ActionData } from './$types';
     import ProductImage from '$lib/components/ProductImage.svelte'
     import Price from '$lib/components/Price.svelte'
-	import RegisterForm from '$lib/components/forms/Register.svelte'
-	import Accept from '$lib/components/inputs/Accept.svelte'
+    import RegisterForm from '$lib/components/forms/Register.svelte'
+    import Accept from '$lib/components/inputs/Accept.svelte'
     export let data:PageData
     export let form:ActionData
-
+    let submitting = false;
     let createAccount = false
     let altAddress = false
     const { shipping } = data
     $: total = parseInt(shipping) + $cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 </script>
 <section class="checkout typography !max-w-none p-4">
-    <form action="?/pay" method="POST" use:enhance>
+    <form action="?/pay" method="POST" 	use:enhance={() => {
+      submitting = true;
+  
+      return async ({ update }) => {
+        await update();
+        submitting = false;
+      };
+    }}>
     <div class="container mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-4 lg:gap-16">
             <div class="md:order-2 shadow-lg p-4 bg-gray-50">
@@ -79,7 +86,7 @@
 		                <div class="flex flex-wrap justify-center mt-8"><Accept name="accept" error={form?.errors?.accept} /></div>
                         <div class="w-full pt-2">
                             <label class="flex items-center mb-4" for="account"><input name="create_account" value="true" id="account" type="checkbox" bind:checked={createAccount}><span class="px-2">Create an account?</span></label>
-                            <button type="submit" class="btn variant-filled-primary w-full">Pay</button>
+                            <button type="submit" class="btn variant-filled-primary w-full" disabled={submitting}>{submitting ? 'Processing...' : 'Pay'}</button>
                         </div>
                     </div>
                     {/if}
