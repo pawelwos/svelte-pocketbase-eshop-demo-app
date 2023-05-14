@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit'
-import { generateUsername, validateData } from '$lib/utils'
+import { generateUsername, validateData, getUUID } from '$lib/utils'
 import { SECRET_STRIPE_KEY } from '$env/static/private'
 import { PUBLIC_SUCCESS_URL, PUBLIC_CANCEL_URL, PUBLIC_PB_URL} from '$env/static/public'
 import type { Actions } from './$types'
@@ -13,6 +13,8 @@ import Stripe from 'stripe';
 export const actions:Actions = {
 	pay: async ({request, locals, cookies}) => {
 
+		// create app sessionId
+		const sessionId = getUUID()
 		const formData = await request.formData()
 		const user = locals.pb.authStore.model ?? null
 		const { formData: body, errors } = await validateData(formData, registerUserSchema(formData.get('create_account') ? false : true))
@@ -106,7 +108,7 @@ export const actions:Actions = {
 			try {
 				// add shipping price
 				const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
-				const shipping = parseInt(structuredClone(result).value);
+				const shipping = parseInt(result.value);
 				total += shipping
 
 				// init Stripe SDK
@@ -131,13 +133,18 @@ export const actions:Actions = {
 							}
 						}
 					],
+					metadata: {
+					  'sessionId': sessionId
+					},
+					payment_intent_data: {
+					  metadata: {
+					    'sessionId': sessionId
+					  }
+					},
 					locale: 'en-GB'
 				})
 
-				cookies.set('sessionId', session.id, {
-					httpOnly: false,
-					secure: false
-				})
+				console.log(session)
 
 			} catch (err) {
 				console.log('Stripe Session error: ', err)
@@ -148,7 +155,7 @@ export const actions:Actions = {
 
 				// create order record
 				const pb_order = {
-					"sessionId": session.id,
+					"sessionId": sessionId,
 					"user": user ? user.id : "",
 					"email": client.email,
 					"telephone": client.phone,
@@ -172,7 +179,7 @@ export const actions:Actions = {
 				const pb_payment = {
 					"user": user ? user.id : "",
 					"order": order_record.id,
-					"session_id": session.id,
+					"session_id": sessionId,
 					"amount": total,
 					"status": "PENDING"
 				};
@@ -215,7 +222,7 @@ export const load = (async ({locals, cookies }) => {
 	const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
 	const shipping = structuredClone(result).value;
 
-	return {
+	return {    
 		shipping,
 		user: structuredClone(locals.pb?.authStore?.model) ?? undefined
 	}
