@@ -49,7 +49,7 @@ export const actions:Actions = {
 				//PUBLIC_PB_URL+"/api/files/"+product.collectionId+"/"+product.id+"/"+product.cover
 				const images = ['https://app.pawelwos.com'+"/api/files/"+product.collectionId+"/"+product.id+"/"+product.cover]
 				
-				// Stripe product create for session
+				// Stripe product for session
 				line_items.push({
 					price_data: {
 						'currency': 'GBP',
@@ -57,7 +57,10 @@ export const actions:Actions = {
 							'name': product.name,
 							'images': images
 						},
-						'unit_amount': product.price*100
+						'unit_amount': product.price*100,
+            'metadata': {
+              'productId': product.id
+            }
 					},
 					quantity: item.quantity
 				})
@@ -140,9 +143,10 @@ export const actions:Actions = {
   					email: client.email,
 				});
 
+        // if customer (by email) already exist we update the address details 
+        // or else we create new customer
 				if(customers)
 				{
-          
           const customer = await stripe.customers.update(customers.data[0].id,customerData);
 				} else {
           const customer = await stripe.customers.create(customerData);
@@ -223,19 +227,6 @@ export const actions:Actions = {
 					httpOnly: false,
 					secure: false
 				})
-
-				// update stock level
-				for (const prod of cart) {
-					try {
-						const data = {
-							'stock': prod.stock - prod.quantity
-						}
-						const update = await locals.pb.collection('products').update(prod.id, data);
-					} catch (err) {
-						console.log(`Update stock: ${prod.id} error: `, err)
-						throw error(500, '500 error page')
-					}
-				}
 
 			} catch (err) {
 				console.log('Pocketbase order and payment setup failed: ', err)
