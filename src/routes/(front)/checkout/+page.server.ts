@@ -20,7 +20,7 @@ export const actions:Actions = {
 		const { formData: body, errors } = await validateData(formData, registerUserSchema(formData.get('create_account') ? false : true))
 		
 
-		if (errors) {
+		if (!user && errors) {
 			const t: ToastSettings = {
 				message: 'Validation errors',
 				background: 'variant-filled-error'
@@ -107,7 +107,6 @@ export const actions:Actions = {
 					country: body.country,
 				}
 			}
-
 			try {
 				// add shipping price
 				const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
@@ -142,10 +141,9 @@ export const actions:Actions = {
 				const customers = await stripe.customers.list({
   					email: client.email,
 				});
-
         // if customer (by email) already exist we update the address details 
         // or else we create new customer
-				if(customers)
+				if(customers?.data)
 				{
           const customer = await stripe.customers.update(customers.data[0].id,customerData);
 				} else {

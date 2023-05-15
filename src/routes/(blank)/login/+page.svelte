@@ -18,8 +18,14 @@
 		<div class="w-full my-4">
 			<a href="/reset-password">Forgot password?</a>
 		</div>
+	  {#if form?.error}
+		<p class="variant-filled-primary">{form.error}</p>
+		{/if}
 			<button type="submit" class="btn variant-filled-primary w-full">Login</button> 
       <hr>
+	  {#if form?.error}
+		<p class="text-red">{form.error}</p>
+		{/if}
 	</form>
   <div class="flex px-4 justify-center items-center">
     <form method="POST" action="?/google" use:enhance>

@@ -4,13 +4,13 @@
 	export let data
 	const {orders, shipping} = data
 </script>
-<section class="account typography p-4 py-16">
+<section class="account !max-w-none typography p-4 py-16">
 	<div class="container mx-auto">
 		<h2>Your Account</h2>
 		{#if orders?.items?.length}
 			<p>Your latest orders:</p>
 
-			<div class="relative overflow-x-auto">
+			<div class="relative w-full overflow-x-auto">
 				<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
 						<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 								<tr>
@@ -53,27 +53,19 @@
 												{#if order.shipping}
 													 {order.shipping}
 												{:else}
-													 {order.address}<br />
+													 {@html order.address}<br />
 													 {order.postcode} {order.city}
 												{/if}
 										</td>
 										<td class="px-6 py-4">
 												{#if order.status == 'PAID'}
 													 <span class="text-green-800">Paid</span>
-												{:else if order.status == 'PENDING'}
-													 <form action="?/pay" method="POST" use:enhance>
-                            <input type="hidden" name="sessionId" value="{order.sessionId}">
-                            <input type="hidden" name="orderId" value="{order.id}">
-                            <input type="hidden" name="total" value="{order.total}">
-                            <input type="hidden" name="shipping" value="{parseInt(shipping.value)}">
-                            <button class="button">Pay</button>
-                          </form>
 												{:else}
                           <span class="text-red-600">Not paid</span>
 												{/if}
 										</td>
 										<td class="px-6 py-4">
-												<Price price={order.total/100} />
+												<Price price={order.total} />
 										</td>
 								</tr>
 							{/each}
