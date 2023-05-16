@@ -73,9 +73,9 @@
                     <p><a href="/account/profile">Ship to different address?</a></p>
                     <p><label for="altAddress"><input id="altAddress" type="checkbox" bind:checked={altAddress}> Different shipping address?</label></p>
                     {#if altAddress}
-                         <textarea class="textarea textarea-bordered w-full" name="shipping" id="" cols="30" rows="10" placeholder="Dane do wysyłki"></textarea>
+                         <textarea class="textarea textarea-bordered w-full" name="shipping" id="" cols="30" rows="10" placeholder="Shipping address"></textarea>
                     {/if}
-                    <button type="submit" class="btn variant-filled-primary w-full">Place your order</button>
+                    <button type="submit" class="btn variant-filled-primary w-full" disabled={submitting}>{submitting ? 'Processing...' : 'Place your order'}</button>
                     {:else}
                     <p class="flex items-center">
                         <a href="/login" class="pr-2">Login</a> if you have an account.

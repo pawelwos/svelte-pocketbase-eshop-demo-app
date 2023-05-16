@@ -2,7 +2,7 @@
 	import Price from '$lib/components/Price.svelte'
   import {enhance} from "$app/forms";
 	export let data
-	const {orders, shipping} = data
+	const {orders} = data
 </script>
 <section class="account !max-w-none typography p-4 py-16">
 	<div class="container mx-auto">
@@ -14,22 +14,22 @@
 				<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
 						<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 								<tr>
-										<th scope="col" class="px-6 py-3">
+										<th scope="col" class="!px-6 py-3">
 												Date
 										</th>
-										<th scope="col" class="px-6 py-3">
+										<th scope="col" class="!px-6 py-3">
 												Order number
 										</th>
-										<th scope="col" class="px-6 py-3">
+										<th scope="col" class="!px-6 py-3">
 												Products
 										</th>
-										<th scope="col" class="px-6 py-3">
+										<th scope="col" class="!px-6 py-3">
 												Address
 										</th>
-										<th scope="col" class="px-6 py-3">
+										<th scope="col" class="!px-6 py-3">
 												Status
 										</th>
-										<th scope="col" class="px-6 py-3">
+										<th scope="col" class="!px-6 py-3">
 												Total
 										</th>
 								</tr>
@@ -57,11 +57,19 @@
 													 {order.postcode} {order.city}
 												{/if}
 										</td>
-										<td class="px-6 py-4">
+										<td class="px-6 py-4 text-center">
 												{#if order.status == 'PAID'}
 													 <span class="text-green-800">Paid</span>
+												{:else if  order.status == 'CANCELED'}
+												<span class="text-red-600">Canceltd</span>
 												{:else}
                           <span class="text-red-600">Not paid</span>
+													{#if order?.expand?.payment?.stripeSessionId}
+														 <form method="POST" action="?/pay">
+															 <input type="hidden" name="stripeSessionId" value={order.expand.payment.stripeSessionId}>
+															 <button class="btn variant-filled-primary">Pay again</button>
+														 </form>
+													{/if}
 												{/if}
 										</td>
 										<td class="px-6 py-4">

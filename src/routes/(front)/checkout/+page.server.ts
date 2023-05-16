@@ -56,8 +56,8 @@ export const actions:Actions = {
 						'product_data': {
 							'name': product.name,
 							'images': images,
-              metadata: {
-                productId: product.id
+              'metadata': {
+                'productId': product.id
               }
 						},
 						'unit_amount': product.price*100,
@@ -169,6 +169,11 @@ export const actions:Actions = {
 							}
 						}
 					],
+					after_expiration: {
+						recovery: {
+							enabled: true,
+						},
+					},
 					metadata: {
 					  'sessionId': sessionId
 					},
@@ -179,8 +184,6 @@ export const actions:Actions = {
 					},
 					locale: 'en-GB'
 				})
-
-				//console.log("Session:", session)
 
 			} catch (err) {
 				console.log('Stripe Session error: ', err)
@@ -216,11 +219,17 @@ export const actions:Actions = {
 				const pb_payment = {
 					"user": user ? user.id : "",
 					"order": order_record.id,
-					"session_id": sessionId,
+					"sessionId": sessionId,
+					"stripeSessionId": session.id,
 					"amount": total,
 					"status": "PENDING"
 				};
 				const payment = await locals.pb.collection('payments').create(pb_payment)
+
+				const orderData = {
+						"payment": payment.id
+				};
+				const orderPaymentLink = await locals.pb.collection('orders').update(order_record.id, orderData);
 
 				cookies.set('orderId', order_record.id, {
 					httpOnly: false,

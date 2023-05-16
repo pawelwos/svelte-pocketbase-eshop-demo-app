@@ -23,6 +23,23 @@ export const POST = (async ({ locals, request }) => {
     throw error(500, 'Signature error')
   }
 
+  if(event.type === 'checkout.session.expired') {
+    const session = event.data.object;
+    const recoveryUrl = session.after_expiration?.recovery?.url
+
+    try {
+      const sessionId = event.data.object.metadata.sessionId
+      const payment = await locals.pb.collection('payments').getFirstListItem( `sessionId = "${sessionId}"`)
+      const data = {
+          "recoveryURL": recoveryUrl,
+      };
+      const record = await locals.pb.collection('payments').update(payment.id, data);
+    } catch (error) {
+      console.log(`Recovery Link error: ${record.id} error: `, err)
+      throw error(500, '500 error page')
+    }
+  }
+
   // Handle the checkout.session.completed event
   if (event.type === 'checkout.session.completed') {
     // Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
@@ -52,11 +69,11 @@ export const POST = (async ({ locals, request }) => {
     }
     // update payment and order
     const order = await locals.pb.collection('orders').getFirstListItem( `sessionId = "${sessionId}"`)
-    const payment = await locals.pb.collection('payments').getFirstListItem( `session_id = "${sessionId}"`)
+    const payment = await locals.pb.collection('payments').getFirstListItem( `sessionId = "${sessionId}"`)
     try {
 
       const data = {
-          "session_id": sessionId,
+          "sessionId": sessionId,
           "status": event.data.object.status
       };
       const record = await locals.pb.collection('payments').update(payment.id, data);

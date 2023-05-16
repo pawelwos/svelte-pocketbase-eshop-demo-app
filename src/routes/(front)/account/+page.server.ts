@@ -1,7 +1,20 @@
 import { error, redirect } from '@sveltejs/kit'
+import Stripe from 'stripe';
+import { SECRET_STRIPE_KEY } from '$env/static/private'
 
 export const actions = {
-	
+	pay: async ({request, locals, cookies}) => {
+
+		const body = Object.fromEntries(await request.formData() )
+
+		// init Stripe SDK
+		const stripe = new Stripe(SECRET_STRIPE_KEY);
+		const session = await stripe.checkout.sessions.retrieve(
+			body.stripeSessionId
+		);
+
+		throw redirect(303, session.url)
+	}
 }
 
 export const load = async ({locals, params, cookies }) => {
@@ -15,7 +28,7 @@ export const load = async ({locals, params, cookies }) => {
 	const records = await locals.pb.collection('orders').getList(1, 50, {
 			filter: 'user = "'+locals.pb?.authStore?.model?.id+'"',
 			sort: '-created',
-			expand: 'products'
+			expand: 'payment'
 	});
 	return {
 		orders: structuredClone(records),
