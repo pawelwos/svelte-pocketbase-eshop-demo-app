@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit'
 import type { Actions } from './$types';
-import eventsource from 'eventsource';
-global.EventSource = eventsource
+import type { PageServerLoad } from './$types';
+
 
 import { z } from "zod";
 export const actions:Actions = {
@@ -32,24 +32,11 @@ export const actions:Actions = {
 			}
 		}
 		throw redirect(303, '/')
-	},
-	google: async({request, locals}) => {
-		try {
-			const authData = await locals.pb?.collection('users').authWithOAuth2({ provider: 'google' });
-		} catch (err) {
-			console.log("Google login error: ", err)
-			throw error(500, '500 error page')
-		}
-		throw redirect(303, '/')
-	},
-	facebook: async({request, locals}) => {
-		try {
-			const authData = await locals.pb?.collection('users').authWithOAuth2({ provider: 'facebook' });
-		} catch (err) {
-			console.log("Facebook login error: ", err)
-			throw error(500, '500 error page')
-		}
-		throw redirect(303, '/')
 	}
 } satisfies Actions;
+
+export const load: PageServerLoad<PageServerLoad> = async ({ locals, url }) => {
+    const authMethods = await locals.pb?.collection('users').listAuthMethods();
+    return {providers: authMethods}
+};
 
