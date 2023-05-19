@@ -2,15 +2,18 @@
   import {enhance} from "$app/forms"
   import type { PageData, ActionData } from './$types';
   import Input from "$lib/components/inputs/Input.svelte";
+  import { page } from '$app/stores';
+  import Cookies from 'js-cookie'
   export let form: ActionData
   export let data: PageData
   const {providers} = data
   const signin = async (provider) => {
     providers.authProviders.map(prov => {
-        console.log(prov)
         if(provider == prov.name)
         {
-            window.location.href = prov.authUrl+"http://localhost:5173/login"
+            // store provider's data on click for verification in the redirect page
+            Cookies.set('provider', JSON.stringify(prov))
+            window.location.href = prov.authUrl+$page.url.origin+"/login/callback" 
         }
     })
   }
