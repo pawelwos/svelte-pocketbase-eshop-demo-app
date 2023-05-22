@@ -20,7 +20,7 @@ export const GET: RequestHandler = async ({ locals, url, cookies }: RequestEvent
     
     try {
         // authenticate
-        await locals.pb.collection('users').authWithOAuth2Code(
+        const user = await locals.pb.collection('users').authWithOAuth2Code(
             provider.name,
             code,
             provider.codeVerifier,
