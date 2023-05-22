@@ -225,16 +225,14 @@ export const actions:Actions = {
 					"status": "PENDING"
 				};
 				const payment = await locals.pb.collection('payments').create(pb_payment)
-
 				const orderData = {
 						"payment": payment.id
-				};
+				}
+                console.log("Order Data ", orderData)
+                console.log("Update Order ID ", order_record.id)
 				const orderPaymentLink = await locals.pb.collection('orders').update(order_record.id, orderData);
 
-				cookies.set('orderId', order_record.id, {
-					httpOnly: false,
-					secure: false
-				})
+				cookies.set('orderId', order_record.id)
 
 			} catch (err) {
 				console.log('Pocketbase order and payment setup failed: ', err)

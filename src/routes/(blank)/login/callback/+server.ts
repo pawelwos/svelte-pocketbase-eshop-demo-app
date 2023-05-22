@@ -1,11 +1,12 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestEvent, RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ locals, url, cookies }: RequestEvent) => {
+export const GET: RequestHandler = async ({ locals, url, cookies, }: RequestEvent) => {
     const state = url.searchParams.get('state')
     const code = url.searchParams.get('code') 
 
     // load the previously stored provider's data
+
     const provider = JSON.parse(cookies.get('provider'))
     
     if (!provider) {
@@ -20,7 +21,7 @@ export const GET: RequestHandler = async ({ locals, url, cookies }: RequestEvent
     
     try {
         // authenticate
-        await locals.pb.collection('users').authWithOAuth2Code(
+         await locals.pb.collection('users').authWithOAuth2Code(
             provider.name,
             code,
             provider.codeVerifier,
