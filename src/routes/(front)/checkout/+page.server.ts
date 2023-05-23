@@ -228,8 +228,6 @@ export const actions:Actions = {
 				const orderData = {
 						"payment": payment.id
 				}
-                console.log("Order Data ", orderData)
-                console.log("Update Order ID ", order_record.id)
 				const orderPaymentLink = await locals.pb.collection('orders').update(order_record.id, orderData);
 
 				cookies.set('orderId', order_record.id)
