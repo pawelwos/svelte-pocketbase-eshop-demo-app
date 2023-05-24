@@ -7,7 +7,7 @@ export async function handle({ event, resolve }) {
     event.locals.pb = new PocketBase(PUBLIC_PB_URL);
 
     // load the store data from the request cookie string
-    const ev = event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
+    await event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
     try {
         // get an up-to-date auth store state by verifying and refreshing the loaded auth model (if any)
         event.locals.pb.authStore.isValid && await event.locals.pb.collection('users').authRefresh();
