@@ -2,9 +2,10 @@ import { error,redirect } from '@sveltejs/kit'
 import type { RequestHandler } from './$types';
 import Stripe from 'stripe'
 import { SECRET_STRIPE_KEY } from '$env/static/private'
+import { SECRET_STRIPE_WEBHOOK_KEY } from "$env/static/private" 
 
 // This is your Stripe CLI webhook secret for testing your endpoint locally.
-const endpointSecret = "whsec_498a46cb120d90a53c679d073c6005559d4575b742d61233a61e2312b73db059";
+const endpointSecret = SECRET_STRIPE_WEBHOOK_KEY;
 const stripe = new Stripe(SECRET_STRIPE_KEY);
 
 export const POST = (async ({ locals, request }) => {
