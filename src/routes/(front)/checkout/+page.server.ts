@@ -243,7 +243,7 @@ export const actions:Actions = {
 			throw error(500, '500 error page')
 		}
 
-		throw redirect(303, session.url)
+		throw redirect(302, session.url)
 	}
 }
 
