@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ locals, url, cookies, }: RequestEven
     
     try {
         // authenticate
-         await locals.pb.collection('users').authWithOAuth2Code(
+       const oauth = await locals.pb.collection('users').authWithOAuth2Code(
             provider.name,
             code,
             provider.codeVerifier,
