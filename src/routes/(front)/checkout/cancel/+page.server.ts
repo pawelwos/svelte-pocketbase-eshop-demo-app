@@ -7,14 +7,14 @@ export const load = async ({locals, cookies }) => {
 			const payment = await locals.pb.collection('payments').getFirstListItem( `sessionId = "${sessionId}"`)
       const data = {
 					"sessionId": sessionId,
-					"status": 'CANCELED'
+					"status": 'CANCELLED'
 			};
 			const record = await locals.pb.collection('payments').update(payment.id, data);
 			
 			const orderData = {
 					"payment": payment.id,
 					"sessionId": sessionId,
-					"status": 'CANCELED'
+					"status": 'CANCELLED'
 			};
 			const orderRecord = await locals.pb.collection('orders').update(order.id, orderData);
     } catch (error) {
@@ -24,6 +24,6 @@ export const load = async ({locals, cookies }) => {
 	return {
 		sessionId,
 		orderId,
-		user: locals.pb.authStore.model ?? undefined
+		user: structuredClone(locals.pb.authStore.model) ?? undefined
 	}
 }

@@ -7,6 +7,6 @@ export const load: PageServerLoad = async ({locals, cookies }) => {
 	return {
 		sessionId,
 		orderId,
-		user: locals.pb.authStore.model ?? undefined
+		user: structuredClone(locals.pb.authStore.model) ?? undefined
 	}
 }

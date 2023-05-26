@@ -67,7 +67,7 @@ export const actions:Actions = {
 
                 // cart string for PB order 
                 total += (product.price*item.quantity)
-            cartStr += `${product.name} | ${product.price} | ${item.quantity} | ${product.price*item.quantity} \n`
+                cartStr += `${product.name} | ${product.price} | ${item.quantity} | ${product.price*item.quantity} \n`
 
             }
         }
@@ -150,109 +150,110 @@ export const actions:Actions = {
                             const customer = await stripe.customers.create(customerData);
                         }
 
-				session = await stripe.checkout.sessions.create({
-					line_items: line_items,
-					mode: 'payment',
-					currency: 'GBP',
-					customer: customers.data[0].id ?? null,
-					success_url: PUBLIC_SUCCESS_URL,
-					cancel_url: PUBLIC_CANCEL_URL,
-					shipping_options: [
-						{
-							shipping_rate_data: {
-								display_name: 'Standard Shipping',
-								type: 'fixed_amount',
-								fixed_amount: {
-									amount: shipping * 100,
-									currency: 'gbp',
-								},
-							}
-						}
-					],
-					after_expiration: {
-						recovery: {
-							enabled: true,
-						},
-					},
-					metadata: {
-					  'sessionId': sessionId
-					},
-					payment_intent_data: {
-					  metadata: {
-					    'sessionId': sessionId
-					  }
-					},
-					locale: 'en-GB'
-				})
+                        session = await stripe.checkout.sessions.create({
+                            line_items: line_items,
+                            mode: 'payment',
+                            currency: 'GBP',
+                            customer: customers.data[0].id ?? null,
+                            success_url: PUBLIC_SUCCESS_URL,
+                            cancel_url: PUBLIC_CANCEL_URL,
+                            shipping_options: [
+                                {
+                                    shipping_rate_data: {
+                                        display_name: 'Standard Shipping',
+                                        type: 'fixed_amount',
+                                        fixed_amount: {
+                                            amount: shipping * 100,
+                                            currency: 'gbp',
+                                        },
+                                    }
+                                }
+                            ],
+                            after_expiration: {
+                                recovery: {
+                                    enabled: true,
+                                },
+                            },
+                            metadata: {
+                                'sessionId': sessionId
+                            },
+                            payment_intent_data: {
+                                metadata: {
+                                    'sessionId': sessionId
+                                }
+                            },
+                            locale: 'en-GB'
+                        })
 
-			} catch (err) {
-				console.log('Stripe Session error: ', err)
-				throw error(500, "500 server error")
-			}
+                } catch (err) {
+                    console.log('Stripe Session error: ', err)
+                    throw error(500, "500 server error")
+                }
 
-			try {
+                try {
 
-				// create order record
-				const pb_order = {
-					"sessionId": sessionId,
-					"user": user ? user.id : "",
-					"name": client.name,
-					"email": client.email,
-					"telephone": client.phone,
-					"address": client.address,
-					"city": client.city,
-					"postcode": client.zip,
-					"country": client.country,
-					"status": "PENDING",
-					"cart": cartStr,
-					"total": total,
-					"note": body.note
-				};
+                    // create order record
+                    const pb_order = {
+                        "sessionId": sessionId,
+                        "user": user ? user.id : "",
+                        "name": client.name,
+                        "email": client.email,
+                        "telephone": client.phone,
+                        "address": client.address,
+                        "city": client.city,
+                        "postcode": client.zip,
+                        "country": client.country,
+                        "status": "PENDING",
+                        "cart": cartStr,
+                        "total": total,
+                        "note": body.note
+                    };
 
-				// if different shipping address add it
-				if(body.shipping)
-				pb_order.shipping = body.shipping
+                // if different shipping address add it
+                if(body.shipping)
+                pb_order.shipping = body.shipping
 
-				const order_record = await locals.pb.collection('orders').create(pb_order)
+                const order_record = await locals.pb.collection('orders').create(pb_order)
 
-				// create payment record
-				const pb_payment = {
-					"user": user ? user.id : "",
-					"order": order_record.id,
-					"sessionId": sessionId,
-					"stripeSessionId": session.id,
-					"amount": total,
-					"status": "PENDING"
-				};
-				const payment = await locals.pb.collection('payments').create(pb_payment)
-				const orderData = {
-						"payment": payment.id
-				}
-				const orderPaymentLink = await locals.pb.collection('orders').update(order_record.id, orderData);
+                // create payment record
+                const pb_payment = {
+                    "user": user ? user.id : "",
+                    "order": order_record.id,
+                    "sessionId": sessionId,
+                    "stripeSessionId": session.id,
+                    "amount": total,
+                    "status": "PENDING"
+                };
+                const payment = await locals.pb.collection('payments').create(pb_payment)
+                const orderData = {
+                    "payment": payment.id
+                }
+                const orderPaymentLink = await locals.pb.collection('orders').update(order_record.id, orderData);
 
-				cookies.set('orderId', order_record.id)
+                cookies.set('orderId', order_record.id)
+                cookies.set('sessionId', sessionId)
 
-			} catch (err) {
-				console.log('Pocketbase order and payment setup failed: ', err)
-				throw error(500, "500 server error")
-			}
-			
+                } catch (err) {
+                    console.log('Pocketbase order and payment setup failed: ', err)
+                    throw error(500, "500 server error")
+                }
 
-		} catch (err) {
-			console.log("Error: ", err)
-			throw error(500, '500 error page')
-		}
 
-		throw redirect(302, session.url)
-	}
+            } catch (err) {
+                console.log("Error: ", err)
+                throw error(500, '500 error page')
+            }
+
+            throw redirect(302, session.url)
+    }
 }
 
 export const load = (async ({locals, cookies }) => {
-	const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
-	const shipping = structuredClone(result).value;
+    const result = await locals.pb.collection('options').getOne('bi3g03tppvmir2y');
+    const shipping = structuredClone(result).value;
 
-	return {    
-		shipping,
-		user: structuredClone(locals.pb?.authStore?.model) ?? undefined
-	}
+    return {    
+        shipping,
+        user: structuredClone(locals.pb?.authStore?.model) ?? undefined
+    }
 }) satisfies PageServerLoad

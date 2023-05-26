@@ -1,8 +1,17 @@
-<script>
+<script lang="ts">
 	import Price from '$lib/components/Price.svelte';
-	import { enhance } from '$app/forms';
 	export let data;
-	const { orders, carts } = data;
+	const { orders } = data;
+    const getProducts = (cart:string):string => {
+        let line:Array<string> = []
+        let rows = cart.trim().split("\n")
+        rows.map(row => {
+            let cols = row.trim().split(" | ")
+            if(cols?.length > 0)
+            line.push("<div>"+cols[0]+"i</div><div> "+cols[2]+" x &pound;"+cols[1]+"</div><div> &pound;"+cols[3]+"</div>")
+        })
+        return line
+    }
 </script>
 
 <section class="account !max-w-none typography p-4 py-16">
@@ -39,13 +48,12 @@
 									{order.id}
 								</td>
 								<td class="py-4 px-6">
-									{#if carts[order.id]}
-										<ul>
-											{#each carts[order.id] as item}
-												<li>{item}</li>
-											{/each}
-										</ul>
-									{/if}
+                                <ul>
+                                {#each  getProducts(order.cart) as line }
+                                   <li class="flex justify-between">{@html line}</li> 
+                                {/each}
+                                </ul>
+                                    
 								</td>
 								<td class="py-4 px-6">
 									{#if order.shipping}
@@ -59,7 +67,7 @@
 								<td class="py-4 px-6 text-center">
 									{#if order.status == 'PAID'}
 										<span class="text-green-800">Paid</span>
-									{:else if order.status == 'CANCELED'}
+									{:else if order.status == 'CANCELLED'}
 										<span class="text-red-600">Canceltd</span>
 									{:else}
 										<span class="text-red-600">Not paid</span>

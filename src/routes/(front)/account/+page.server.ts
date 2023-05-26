@@ -12,8 +12,10 @@ export const actions = {
 		const session = await stripe.checkout.sessions.retrieve(
 			body.stripeSessionId
 		);
-
+        if(session.url)
 		throw redirect(303, session.url)
+        else
+        throw redirect(303, '/account')
 	}
 }
 
@@ -30,21 +32,9 @@ export const load = async ({ locals, params, cookies }) => {
 		sort: '-created',
 		expand: 'payment'
 	});
-	let carts = []
-	records.items.map(record => {
-		const cart = record.cart
-		const products = cart.split("\n")
-		carts[record.id] = []
-		products.map(prod => {
-			const columns = prod.split(" | ")
-			carts[record.id].push(columns)
-		})
-
-	})
 
 	return {
 		orders: structuredClone(records),
-		carts,
 		shipping
 	}
 }
