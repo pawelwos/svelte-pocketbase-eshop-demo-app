@@ -4,7 +4,7 @@ import type { RequestEvent, RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ locals, url, cookies, }: RequestEvent) => {
     const state = url.searchParams.get('state')
     const code = url.searchParams.get('code') 
-
+    console.log(url)
     // load the previously stored provider's data
 
     const provider = JSON.parse(cookies.get('provider'))
