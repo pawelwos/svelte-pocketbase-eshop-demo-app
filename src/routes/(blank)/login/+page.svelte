@@ -13,8 +13,7 @@
         {
             // store provider's data on click for verification in the redirect page
             Cookies.set('provider', JSON.stringify(prov))
-            console.log($page.url.origin+"/login/callback")
-            //window.location.href = prov.authUrl+$page.url.origin+"/login/callback" 
+            window.location.href = prov.authUrl+$page.url.origin+"/login/callback" 
         }
     })
   }
