@@ -18,7 +18,6 @@ export const GET: RequestHandler = async ({ locals, url, cookies, }: RequestEven
         console.log('state does not match expected', provider.state, state);
         throw redirect(303, '/login');
     }
-    
     try {
         // authenticate
        const oauth = await locals.pb.collection('users').authWithOAuth2Code(
@@ -26,7 +25,7 @@ export const GET: RequestHandler = async ({ locals, url, cookies, }: RequestEven
             code,
             provider.codeVerifier,
             //url.origin+"/login/callback",
-            "https://shop.pawelwos.com/login/callback",
+            url.hostname == 'localhost' ? url.origin+"/login/callback" :  "https://"+url.hostname+"/login/callback",
             // pass optional user create data
             {
                 emailVisibility: false,
